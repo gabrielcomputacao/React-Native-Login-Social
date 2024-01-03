@@ -1,16 +1,14 @@
-import { ThemeProvider } from "styled-components/native";
-
 import { Text, View } from "react-native";
-import theme from "../../theme";
+import { Container, Slogan, Title } from "./styles";
 
-import { styles } from "./styles";
+import backgroundImg from "../../assets/background.png";
 
 export function SignIn() {
   return (
-    <ThemeProvider theme={theme}>
-      <View style={styles.container}>
-        <Text>Hello , world</Text>
-      </View>
-    </ThemeProvider>
+    <Container source={backgroundImg}>
+      <Title>Ignite Fleet</Title>
+
+      <Slogan>Gestão de Veículos</Slogan>
+    </Container>
   );
 }
