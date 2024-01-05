@@ -15,6 +15,8 @@ import { StatusBar } from "react-native";
 export default function App() {
   const [fontsLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
 
+  /* com.gabrielh.ignitefleet */
+
   if (!fontsLoaded) {
     return <Loading />;
   }
