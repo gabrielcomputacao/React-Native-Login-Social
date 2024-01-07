@@ -2,6 +2,8 @@ import { Container, Slogan, Title } from "./styles";
 
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
+import { Realm, useApp } from "@realm/react";
+
 import backgroundImg from "../../assets/background.png";
 import { Button } from "../../components/Button";
 
@@ -17,6 +19,8 @@ GoogleSignin.configure({
 export function SignIn() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
+  const app = useApp();
+
   async function handleGoogleSignIn() {
     try {
       setIsAuthenticating(true);
@@ -26,6 +30,11 @@ export function SignIn() {
       console.log(idToken);
 
       if (idToken) {
+        /* esse token que é enviado para o atlas db para ter o token la tambem */
+
+        const credentials = Realm.Credentials.jwt(idToken);
+
+        await app.logIn(credentials);
       } else {
         Alert.alert(
           "Entrar",
