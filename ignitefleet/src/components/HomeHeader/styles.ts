@@ -1,4 +1,5 @@
 import styled from "styled-components/native";
+import { Image } from "expo-image";
 
 export const Container = styled.View`
   width: 100%;
@@ -23,4 +24,9 @@ export const Name = styled.Text`
   color: ${(props) => props.theme.COLORS.GRAY_100};
   font-size: ${(props) => props.theme.FONT_SIZE.LG}px;
   font-family: ${(props) => props.theme.FONT_FAMILY.BOLD};
+`;
+
+export const Picture = styled(Image)`
+  width: 54px;
+  height: 54px;
 `;
