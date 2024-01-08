@@ -17,6 +17,7 @@ import { REALM_APP_ID } from "@env";
 
 import { Routes } from "./src/routes";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { RealmProvider } from "./src/libs/realm";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
@@ -38,7 +39,9 @@ export default function App() {
           />
           {/* se nao estiver logado vai levar para o signin para o usuario logar, caso tenha leva a home */}
           <UserProvider fallback={SignIn}>
-            <Routes />
+            <RealmProvider>
+              <Routes />
+            </RealmProvider>
           </UserProvider>
         </SafeAreaProvider>
       </ThemeProvider>
