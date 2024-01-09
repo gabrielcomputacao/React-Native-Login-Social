@@ -31,7 +31,10 @@ export default function App() {
   return (
     <AppProvider id={REALM_APP_ID}>
       <ThemeProvider theme={theme}>
-        <SafeAreaProvider>
+        {/* para evitar que ao trocar de pagina pela navegação o fundo fique branco entre as trocas */}
+        <SafeAreaProvider
+          style={{ flex: 1, backgroundColor: theme.COLORS.GRAY_800 }}
+        >
           <StatusBar
             barStyle="light-content"
             backgroundColor="transparent"
