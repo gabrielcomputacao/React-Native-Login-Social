@@ -1,22 +1,28 @@
-import { TextInputProps } from "react-native";
+import { TextInput, TextInputProps } from "react-native";
 import theme from "../../theme";
 import { Container, Input, Label } from "./styles";
+import { forwardRef } from "react";
 
 type LicensePlateInputProps = TextInputProps & {
   label: string;
 };
 
-export function LicensePlateInput({ label, ...rest }: LicensePlateInputProps) {
-  return (
-    <Container>
-      <Label>{label}</Label>
+const LicensePlateInput = forwardRef<TextInput, LicensePlateInputProps>(
+  ({ label, ...rest }, ref) => {
+    return (
+      <Container>
+        <Label>{label}</Label>
 
-      <Input
-        maxLength={7}
-        autoCapitalize="characters"
-        placeholderTextColor={theme.COLORS.GRAY_400}
-        {...rest}
-      />
-    </Container>
-  );
-}
+        <Input
+          ref={ref}
+          maxLength={7}
+          autoCapitalize="characters"
+          placeholderTextColor={theme.COLORS.GRAY_400}
+          {...rest}
+        />
+      </Container>
+    );
+  }
+);
+
+export { LicensePlateInput };
