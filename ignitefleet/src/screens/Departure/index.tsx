@@ -12,10 +12,22 @@ import {
   TextInput,
 } from "react-native";
 import { licensePlateValidate } from "../../utils/licensePlateValidate";
+import { useRealm } from "../../libs/realm";
+import { Historic } from "../../libs/realm/schemas/Historic";
+
+import { useUser } from "@realm/react";
+import { useNavigation } from "@react-navigation/native";
 
 export function Departure() {
   const [description, setDescription] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  /* com isso tem acesso ao bancode dados local */
+  const realm = useRealm();
+  const user = useUser();
+
+  const { goBack } = useNavigation();
 
   const descriptionRef = useRef<TextInput>(null);
   const licensePlatenRef = useRef<TextInput>(null);
@@ -24,16 +36,37 @@ export function Departure() {
     Platform.OS === "android" ? "height" : "position";
 
   function handleDepartureRegister() {
-    if (!licensePlateValidate(licensePlate)) {
-      licensePlatenRef.current?.focus();
-      return Alert.alert(
-        "placa inválida",
-        "Placa Inválida. Digite uma placa correta."
-      );
-    }
+    try {
+      if (!licensePlateValidate(licensePlate)) {
+        licensePlatenRef.current?.focus();
+        return Alert.alert(
+          "placa inválida",
+          "Placa Inválida. Digite uma placa correta."
+        );
+      }
 
-    if (description.trim().length === 0) {
-      return Alert.alert("Finalidade", "Informe a finalidade.");
+      if (description.trim().length === 0) {
+        return Alert.alert("Finalidade", "Informe a finalidade.");
+      }
+
+      setIsRegistering(true);
+      /* quando for mexer com dados sempre usar o write , porque ele usa transações, como cadastrar atualizar modificar, sempre o write */
+      realm.write(() => {
+        realm.create(
+          "Historic",
+          Historic.generate({
+            description,
+            license_plate: licensePlate.toUpperCase(),
+            user_id: user!.id,
+          })
+        );
+      });
+
+      Alert.alert("Saída", "Saída do veículo registrada com sucesso!");
+      goBack();
+    } catch (error) {
+      Alert.alert("Error", "Não foi possivel registrar o veiculo.");
+      setIsRegistering(false);
     }
   }
 
@@ -69,7 +102,11 @@ export function Departure() {
               onChangeText={setDescription}
             />
 
-            <Button title="Registrar Saída" onPress={handleDepartureRegister} />
+            <Button
+              title="Registrar Saída"
+              onPress={handleDepartureRegister}
+              isLoading={isRegistering}
+            />
           </Content>
         </ScrollView>
       </KeyboardAvoidingView>
