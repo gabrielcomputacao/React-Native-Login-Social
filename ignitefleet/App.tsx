@@ -1,6 +1,8 @@
 import "react-native-get-random-values";
 import { SignIn } from "./src/screens/SignIn";
 
+import "./src/libs/dayjs";
+
 import { ThemeProvider } from "styled-components/native";
 
 import {
