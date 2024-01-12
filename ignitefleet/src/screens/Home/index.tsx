@@ -1,15 +1,19 @@
 import { useNavigation } from "@react-navigation/native";
 import { CarStatus } from "../../components/CarsStatus";
 import { HomeHeader } from "../../components/HomeHeader";
-import { Container, Content } from "./styles";
+import { Container, Content, Label, Tittle } from "./styles";
 import { useQuery, useRealm } from "../../libs/realm";
 import { Historic } from "../../libs/realm/schemas/Historic";
 import { useEffect, useState } from "react";
-import { Alert } from "react-native";
-import { HistoricCard } from "../../components/HistoricCard";
+import { Alert, FlatList } from "react-native";
+import { HistoricCard, HistoricCardProps } from "../../components/HistoricCard";
+import dayjs from "dayjs";
 
 export function Home() {
   const [vehicleInUse, setVehicleInUse] = useState<Historic | null>(null);
+  const [vehicleHistoric, setVehicleHisotric] = useState<HistoricCardProps[]>(
+    []
+  );
 
   const { navigate } = useNavigation();
   /* passando o useQuery e o schema ele ja traz todos os dados que estao no banco de dados local */
@@ -35,9 +39,25 @@ export function Home() {
   }
 
   function fetchHistoric() {
-    const response = historic.filtered(
-      "status = 'arrival' SORT(created_at DESC)"
-    );
+    try {
+      const response = historic.filtered(
+        "status = 'arrival' SORT(created_at DESC)"
+      );
+
+      const formattedHistoric = response.map((item) => {
+        return {
+          id: item._id!.toString(),
+          licensePlate: item.license_plate,
+          isSync: false,
+          created: dayjs(item.created_at).format(
+            "[Saída em] DD/MM/YYYY [ás] HH:mm"
+          ),
+        };
+      });
+      setVehicleHisotric(formattedHistoric);
+    } catch (error) {
+      Alert.alert("Error", "Não foi possível acessar dados.");
+    }
   }
 
   /* carrega quando a interface e carregada */
@@ -52,12 +72,20 @@ export function Home() {
     /* quando o componente é desmontado se tratando de listener é sempre bom remove-los atraves do return do useEffect
       ele limpa quando o componente é desmontado
     */
-    return () => realm.removeListener("change", fetchVehicle);
+    return () => {
+      if (realm && !realm.isClosed) {
+        realm.removeListener("change", fetchVehicle);
+      }
+    };
   }, []);
 
   useEffect(() => {
     fetchHistoric();
   }, [historic]);
+
+  function handleHistoricDetails(id: string) {
+    navigate("arrival", { id });
+  }
 
   return (
     <Container>
@@ -69,8 +97,20 @@ export function Home() {
           licensePlate={vehicleInUse?.license_plate}
         />
 
-        <HistoricCard
-          data={{ created: "20/04", licensePlate: "XXX2323", isSync: false }}
+        <Tittle>Histórico</Tittle>
+
+        <FlatList
+          data={vehicleHistoric}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <HistoricCard
+              data={item}
+              onPress={() => handleHistoricDetails(item.id)}
+            />
+          )}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          ListEmptyComponent={<Label>Nenhum veículo utilizado.</Label>}
         />
       </Content>
     </Container>

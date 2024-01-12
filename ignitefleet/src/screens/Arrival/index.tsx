@@ -29,6 +29,8 @@ export function Arrival() {
   const realm = useRealm();
   const { goBack } = useNavigation();
 
+  const title = historic?.status === "departure" ? "Chegada" : "Detales";
+
   function removeVehicleUsage() {
     /* deleta o objeto que foi usado pelo useObject, o realm e baseado em Orientação a objeto
       o useObject pegou o dado do banco 
@@ -68,7 +70,7 @@ export function Arrival() {
 
   return (
     <Container>
-      <Header title="Chegada" />
+      <Header title={title} />
       <Content>
         <Label>Placa do Veículo</Label>
         <LicensePlate>{historic?.license_plate}</LicensePlate>
@@ -76,12 +78,13 @@ export function Arrival() {
         <Label>Finalidade</Label>
 
         <Description>{historic?.description}</Description>
-
+      </Content>
+      {historic?.status === "departure" && (
         <Footer>
           <ButtonIcon icon={X} onPress={handleRemoveVehicleUsage} />
           <Button title="Registrar Chegada" onPress={handleArrivalRegister} />
         </Footer>
-      </Content>
+      )}
     </Container>
   );
 }
