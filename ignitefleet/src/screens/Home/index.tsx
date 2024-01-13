@@ -100,6 +100,26 @@ export function Home() {
     });
   }, [realm]);
 
+  function progressNotification(transferred: number, transferable: number) {
+    const parcentage = (transferred / transferable) * 100;
+  }
+
+  useEffect(() => {
+    const syncSession = realm.syncSession;
+
+    if (!syncSession) {
+      return;
+    }
+
+    syncSession.addProgressNotification(
+      Realm.ProgressDirection.Upload,
+      Realm.ProgressMode.ReportIndefinitely,
+      progressNotification
+    );
+
+    return () => syncSession.removeProgressNotification(progressNotification);
+  }, []);
+
   return (
     <Container>
       <HomeHeader />
