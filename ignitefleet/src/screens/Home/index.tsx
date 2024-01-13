@@ -8,12 +8,15 @@ import { useEffect, useState } from "react";
 import { Alert, FlatList } from "react-native";
 import { HistoricCard, HistoricCardProps } from "../../components/HistoricCard";
 import dayjs from "dayjs";
+import { useUser } from "@realm/react";
 
 export function Home() {
   const [vehicleInUse, setVehicleInUse] = useState<Historic | null>(null);
   const [vehicleHistoric, setVehicleHisotric] = useState<HistoricCardProps[]>(
     []
   );
+
+  const user = useUser();
 
   const { navigate } = useNavigation();
   /* passando o useQuery e o schema ele ja traz todos os dados que estao no banco de dados local */
@@ -86,6 +89,16 @@ export function Home() {
   function handleHistoricDetails(id: string) {
     navigate("arrival", { id });
   }
+
+  useEffect(() => {
+    realm.subscriptions.update((mutableSubs, realm) => {
+      const historicByUserQuery = realm
+        .objects("Historic")
+        .filtered(`user_id = '${user!.id}'`);
+
+      mutableSubs.add(historicByUserQuery, { name: "historic_by_user" });
+    });
+  }, [realm]);
 
   return (
     <Container>
