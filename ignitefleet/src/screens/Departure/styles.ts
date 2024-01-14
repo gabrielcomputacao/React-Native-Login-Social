@@ -11,3 +11,12 @@ export const Content = styled.View`
   padding: 32px;
   margin-top: 16px;
 `;
+
+export const Message = styled.Text`
+  color: ${(props) => props.theme.COLORS.WHITE};
+  font-size: ${(props) => props.theme.FONT_SIZE.SM}px;
+  font-family: ${(props) => props.theme.FONT_FAMILY.BOLD};
+
+  text-align: center;
+  margin: 24px;
+`;

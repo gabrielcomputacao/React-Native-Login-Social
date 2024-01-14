@@ -1,9 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../../components/Button";
 import { Header } from "../../components/Header";
 import { LicensePlateInput } from "../../components/LicensePlateInput";
 import { TextAreaInput } from "../../components/TextAreaInput";
-import { Container, Content } from "./styles";
+import { Container, Content, Message } from "./styles";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -15,13 +15,26 @@ import { licensePlateValidate } from "../../utils/licensePlateValidate";
 import { useRealm } from "../../libs/realm";
 import { Historic } from "../../libs/realm/schemas/Historic";
 
+/* solicitar a permissao de localização em primeiro plano,ja que obter a permissao e ja mostrar para o usuario */
+import {
+  LocationAccuracy,
+  useForegroundPermissions,
+  watchPositionAsync,
+  LocationSubscription,
+} from "expo-location";
+
 import { useUser } from "@realm/react";
 import { useNavigation } from "@react-navigation/native";
+import { getAdressLocation } from "../../utils/getAdressLocation";
+import { Loading } from "../../components/Loading";
+import { LocationInfo } from "../../components/LocationInfo";
 
 export function Departure() {
   const [description, setDescription] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [currentAddress, setCurrentAddress] = useState<string | null>(null);
 
   /* com isso tem acesso ao bancode dados local */
   const realm = useRealm();
@@ -31,6 +44,9 @@ export function Departure() {
 
   const descriptionRef = useRef<TextInput>(null);
   const licensePlatenRef = useRef<TextInput>(null);
+
+  const [locationForegroundPermission, requestLocationForegroundPermission] =
+    useForegroundPermissions();
 
   const keyboardAvoidingViewBehavior =
     Platform.OS === "android" ? "height" : "position";
@@ -70,6 +86,56 @@ export function Departure() {
     }
   }
 
+  useEffect(() => {
+    /* ativa a permissao quando entra na tela, o telefone precisa ter configurações que deixe pedir a location */
+    requestLocationForegroundPermission();
+  }, []);
+
+  useEffect(() => {
+    if (!locationForegroundPermission?.granted) {
+      return;
+    }
+    let subscription: LocationSubscription;
+
+    watchPositionAsync(
+      {
+        accuracy: LocationAccuracy.High,
+        timeInterval: 1000,
+      },
+      (location) => {
+        getAdressLocation(location.coords)
+          .then((address) => {
+            if (address) {
+              setCurrentAddress(address);
+            }
+          })
+          .finally(() => setIsLoadingLocation(false));
+      }
+    ).then((response) => (subscription = response));
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [locationForegroundPermission]);
+
+  if (!locationForegroundPermission?.granted) {
+    return (
+      <Container>
+        <Header title="Saída" />
+        <Message>
+          Você precisa permitir as localizações em seu aplicativo, acesse as
+          configurações para conceder as permissões.
+        </Message>
+      </Container>
+    );
+  }
+
+  if (isLoadingLocation) {
+    return <Loading />;
+  }
+
   return (
     <Container>
       <Header title="Saída" />
@@ -80,6 +146,13 @@ export function Departure() {
       >
         <ScrollView>
           <Content>
+            {currentAddress && (
+              <LocationInfo
+                label="Localização atual"
+                description={currentAddress}
+              />
+            )}
+
             <LicensePlateInput
               ref={licensePlatenRef}
               label="Placa do Veículo"
