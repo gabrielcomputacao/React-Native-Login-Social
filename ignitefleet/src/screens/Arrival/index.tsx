@@ -19,6 +19,9 @@ import { Alert } from "react-native";
 import { useEffect, useState } from "react";
 import { getLastAsyncTimestamp } from "../../libs/asyncStorage/syncStorage";
 import { stopLocationTask } from "../../tasks/backgroundLocationTask";
+import { getStorageLocations } from "../../libs/asyncStorage/locationStorage";
+import { LatLng } from "react-native-maps";
+import { Map } from "../../components/Map";
 
 type RouteParamsProps = {
   id: string;
@@ -26,6 +29,7 @@ type RouteParamsProps = {
 
 export function Arrival() {
   const route = useRoute();
+  const [coordinates, setCoordinates] = useState<LatLng[]>([]);
 
   const { id } = route.params as RouteParamsProps;
 
@@ -37,7 +41,7 @@ export function Arrival() {
 
   const title = historic?.status === "departure" ? "Chegada" : "Detales";
 
-  function removeVehicleUsage() {
+  async function removeVehicleUsage() {
     /* deleta o objeto que foi usado pelo useObject, o realm e baseado em Orientação a objeto
       o useObject pegou o dado do banco 
       e agora como tem esse registro e possivel deletar exatamente esse dado
@@ -45,6 +49,8 @@ export function Arrival() {
     realm.write(() => {
       realm.delete(historic);
     });
+
+    await stopLocationTask();
 
     goBack();
   }
@@ -55,12 +61,11 @@ export function Arrival() {
         return Alert.alert("Error", "nao foi possivel obter os dados do carro");
       }
 
-      await stopLocationTask();
-
       realm.write(() => {
         historic.status = "arrival";
         historic.updated_at = new Date();
       });
+      await stopLocationTask();
 
       Alert.alert("Chegada", "Chegada registrada com sucesso.");
       goBack();
@@ -76,15 +81,31 @@ export function Arrival() {
     ]);
   }
 
+  async function getLocationsInfo() {
+    if (!historic) {
+      return;
+    }
+
+    const lastSync = await getLastAsyncTimestamp();
+    const updateAt = historic!.updated_at.getTime();
+
+    setDataNotSynceed(updateAt > lastSync);
+
+    const locationStorage = await getStorageLocations();
+
+    setCoordinates(locationStorage);
+  }
+
   useEffect(() => {
-    getLastAsyncTimestamp().then((lastSync) =>
-      setDataNotSynceed(historic!.updated_at.getTime() > lastSync)
-    );
-  }, []);
+    getLocationsInfo();
+  }, [historic]);
 
   return (
     <Container>
       <Header title={title} />
+
+      {coordinates.length > 0 && <Map coordinates={coordinates} />}
+
       <Content>
         <Label>Placa do Veículo</Label>
         <LicensePlate>{historic?.license_plate}</LicensePlate>
