@@ -22,6 +22,7 @@ import {
   watchPositionAsync,
   LocationSubscription,
   LocationObjectCoords,
+  requestBackgroundPermissionsAsync,
 } from "expo-location";
 
 import { useUser } from "@realm/react";
@@ -31,6 +32,7 @@ import { Loading } from "../../components/Loading";
 import { LocationInfo } from "../../components/LocationInfo";
 import { Car } from "phosphor-react-native";
 import { Map } from "../../components/Map";
+import { startLocationTask } from "../../tasks/backgroundLocationTask";
 
 export function Departure() {
   const [description, setDescription] = useState("");
@@ -56,7 +58,7 @@ export function Departure() {
   const keyboardAvoidingViewBehavior =
     Platform.OS === "android" ? "height" : "position";
 
-  function handleDepartureRegister() {
+  async function handleDepartureRegister() {
     try {
       if (!licensePlateValidate(licensePlate)) {
         licensePlatenRef.current?.focus();
@@ -70,7 +72,27 @@ export function Departure() {
         return Alert.alert("Finalidade", "Informe a finalidade.");
       }
 
+      if (!currentCoords?.latitude && !currentCoords?.longitude) {
+        return Alert.alert(
+          "Localização",
+          "Não foi possível fazer a verificação"
+        );
+      }
+
       setIsRegistering(true);
+
+      const backgroundPermissions = await requestBackgroundPermissionsAsync();
+
+      if (!backgroundPermissions.granted) {
+        setIsRegistering(true);
+        return Alert.alert(
+          "Localização",
+          "Não tem permissão para executar essa função.É necessário permitir o app para ter permissão para localização em segundo plano."
+        );
+      }
+
+      await startLocationTask();
+
       /* quando for mexer com dados sempre usar o write , porque ele usa transações, como cadastrar atualizar modificar, sempre o write */
       realm.write(() => {
         realm.create(
