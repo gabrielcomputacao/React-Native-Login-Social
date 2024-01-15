@@ -21,6 +21,7 @@ import {
   useForegroundPermissions,
   watchPositionAsync,
   LocationSubscription,
+  LocationObjectCoords,
 } from "expo-location";
 
 import { useUser } from "@realm/react";
@@ -29,6 +30,7 @@ import { getAdressLocation } from "../../utils/getAdressLocation";
 import { Loading } from "../../components/Loading";
 import { LocationInfo } from "../../components/LocationInfo";
 import { Car } from "phosphor-react-native";
+import { Map } from "../../components/Map";
 
 export function Departure() {
   const [description, setDescription] = useState("");
@@ -36,6 +38,8 @@ export function Departure() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
+  const [currentCoords, setCurrentCoords] =
+    useState<LocationObjectCoords | null>(null);
 
   /* com isso tem acesso ao bancode dados local */
   const realm = useRealm();
@@ -104,6 +108,8 @@ export function Departure() {
         timeInterval: 1000,
       },
       (location) => {
+        setCurrentCoords(location.coords);
+
         getAdressLocation(location.coords)
           .then((address) => {
             if (address) {
@@ -146,6 +152,8 @@ export function Departure() {
         behavior={keyboardAvoidingViewBehavior}
       >
         <ScrollView>
+          {currentCoords && <Map coordinates={[currentCoords]} />}
+
           <Content>
             {currentAddress && (
               <LocationInfo
