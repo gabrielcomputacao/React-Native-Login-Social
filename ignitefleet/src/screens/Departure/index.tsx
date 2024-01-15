@@ -33,6 +33,7 @@ import { LocationInfo } from "../../components/LocationInfo";
 import { Car } from "phosphor-react-native";
 import { Map } from "../../components/Map";
 import { startLocationTask } from "../../tasks/backgroundLocationTask";
+import { openSettings } from "../../utils/openSettings";
 
 export function Departure() {
   const [description, setDescription] = useState("");
@@ -87,7 +88,8 @@ export function Departure() {
         setIsRegistering(true);
         return Alert.alert(
           "Localização",
-          "Não tem permissão para executar essa função.É necessário permitir o app para ter permissão para localização em segundo plano."
+          "Não tem permissão para executar essa função.É necessário permitir o app para ter permissão para localização em segundo plano.",
+          [{ text: "Abrir Configurações", onPress: openSettings }]
         );
       }
 
@@ -164,6 +166,8 @@ export function Departure() {
           Você precisa permitir as localizações em seu aplicativo, acesse as
           configurações para conceder as permissões.
         </Message>
+
+        <Button title="Abrir Configurações" onPress={openSettings} />
       </Container>
     );
   }
