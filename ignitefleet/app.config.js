@@ -1,4 +1,8 @@
-{
+import * as dotenv from 'dotenv'
+
+dotenv.config()
+
+module.exports = {
   "expo": {
     "name": "ignitefleet",
     "slug": "ignitefleet",
@@ -22,7 +26,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#202024"
       },
-      "package": "com.gabrielh.ignitefleet"
+      "package": "com.gabrielh.ignitefleet",
+      "config": {
+        "googleMaps": {
+          "apiKey": process.env.GOOGLE_MAPS_API_KEY
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
